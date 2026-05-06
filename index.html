@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CT-P44 3.1 — Checklist Multi-pacientes</title>
+<style>
+:root{
+  --green:#1D9E75;--green-bg:#EAF3DE;--green-txt:#3B6D11;
+  --red:#E24B4A;--red-bg:#FCEBEB;--red-txt:#A32D2D;
+  --blue:#378ADD;--blue-bg:#E6F1FB;--blue-txt:#185FA5;
+  --amber:#BA7517;--amber-bg:#FAEEDA;--amber-txt:#854F0B;
+  --border:#d4d3cc;--border-light:#e8e7e0;
+  --bg:#ffffff;--bg2:#f8f7f4;--bg3:#f0efe9;
+  --text:#1a1a18;--text2:#5a5a56;--text3:#8a8a84;
+  --radius:10px;--radius-sm:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;background:var(--bg3);color:var(--text);line-height:1.5}
+
+/* ── VIEWS ── */
+#view-list{display:block}
+#view-form{display:none}
+
+/* ── HEADER ── */
+.app-header{background:var(--bg);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.app-header h1{font-size:16px;font-weight:600;flex:1}
+.app-header p{font-size:11px;color:var(--text3);margin-top:1px}
+.btn{padding:7px 16px;font-size:13px;font-weight:500;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);cursor:pointer;color:var(--text2);white-space:nowrap;transition:background .15s}
+.btn:hover{background:var(--bg2)}
+.btn-primary{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-primary:hover{background:#18876A}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-back{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text2);background:none;border:none;padding:0}
+.btn-back:hover{color:var(--text)}
+
+/* ── LISTA ── */
+.page{max-width:820px;margin:0 auto;padding:20px 16px 60px}
+.list-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.list-toolbar input{flex:1;min-width:180px;padding:7px 10px;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text)}
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.stat-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;text-align:center}
+.stat-card .n{font-size:22px;font-weight:600;color:var(--text)}
+.stat-card .l{font-size:11px;color:var(--text3);margin-top:2px}
+.patient-grid{display:flex;flex-direction:column;gap:8px}
+.pt-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:border-color .15s}
+.pt-card:hover{border-color:var(--blue)}
+.pt-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:15px;flex-shrink:0}
+.av-pend{background:var(--amber-bg);color:var(--amber-txt)}
+.av-ok{background:var(--green-bg);color:var(--green-txt)}
+.av-fail{background:var(--red-bg);color:var(--red-txt)}
+.pt-info{flex:1;min-width:0}
+.pt-info h3{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt-info p{font-size:12px;color:var(--text3);margin-top:2px}
+.pt-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap}
+.b-green{background:var(--green-bg);color:var(--green-txt)}
+.b-red{background:var(--red-bg);color:var(--red-txt)}
+.b-amber{background:var(--amber-bg);color:var(--amber-txt)}
+.b-blue{background:var(--blue-bg);color:var(--blue-txt)}
+.b-gray{background:var(--bg2);color:var(--text3)}
+.pt-actions{display:flex;gap:6px;flex-shrink:0}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-state .icon{font-size:48px;margin-bottom:12px}
+.empty-state h3{font-size:16px;font-weight:500;color:var(--text2);margin-bottom:6px}
+
+/* ── MODAL NOVO PACIENTE ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg);border-radius:var(--radius);padding:24px;width:100%;max-width:420px;margin:16px}
+.modal h2{font-size:16px;font-weight:600;margin-bottom:16px}
+.form-field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.form-field label{font-size:12px;color:var(--text3);font-weight:500}
+.form-field input,.form-field select{padding:8px 10px;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2);color:var(--text)}
+.form-field input:focus,.form-field select:focus{outline:none;border-color:var(--blue)}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+
+/* ── FORM CHECKLIST ── */
+.form-page{max-width:760px;margin:0 auto;padding:16px 16px 60px}
+.form-header{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px}
+.form-header h2{font-size:16px;font-weight:600}
+.form-header p{font-size:12px;color:var(--text3);margin-top:2px}
+.verdict{padding:10px 14px;border-radius:var(--radius);font-size:13px;font-weight:500;text-align:center;margin-bottom:12px;border:1px solid}
+.v-ok{background:var(--green-bg);color:var(--green-txt);border-color:#9FE1CB}
+.v-fail{background:var(--red-bg);color:var(--red-txt);border-color:#F7C1C1}
+.v-pend{background:var(--amber-bg);color:var(--amber-txt);border-color:#FAC775}
+.status-bar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.status-card{padding:10px 14px;border-radius:var(--radius);font-size:13px;font-weight:500;text-align:center;border:1px solid var(--border-light)}
+.sc-pend{background:var(--amber-bg);color:var(--amber-txt)}
+.sc-ok{background:var(--green-bg);color:var(--green-txt)}
+.sc-fail{background:var(--red-bg);color:var(--red-txt)}
+.sec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden}
+.sec-hd{display:flex;align-items:center;gap:8px;padding:10px 16px;cursor:pointer;background:var(--bg2);border-bottom:1px solid var(--border-light);user-select:none}
+.sec-hd:hover{background:var(--bg3)}
+.sec-hd h3{font-size:13px;font-weight:600;flex:1;color:var(--text)}
+.tog{font-size:11px;color:var(--text3);flex-shrink:0}
+.sec-body{display:block}
+.sec-body.collapsed{display:none}
+.row{display:flex;align-items:flex-start;gap:10px;padding:8px 16px;border-top:1px solid var(--border-light)}
+.row label{font-size:13px;color:var(--text);flex:1;cursor:pointer;line-height:1.45}
+.row label .sub{font-size:11px;color:var(--text3);display:block;margin-top:2px}
+input[type=checkbox]{width:16px;height:16px;flex-shrink:0;margin-top:2px;cursor:pointer;accent-color:var(--green)}
+input[type=checkbox].exc{accent-color:var(--red)}
+input[type=checkbox].neu{accent-color:var(--blue)}
+.lab-row{display:flex;align-items:center;gap:8px;padding:7px 16px;border-top:1px solid var(--border-light)}
+.lab-row label{font-size:13px;color:var(--text);flex:1}
+.lab-row .ref{font-size:11px;color:var(--text3);min-width:110px;text-align:right}
+.lab-row input[type=text]{width:82px;font-size:12px;padding:4px 7px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2);color:var(--text)}
+.lab-st{font-size:11px;font-weight:700;min-width:42px;text-align:right}
+.st-ok{color:var(--green-txt)}.st-fail{color:var(--red-txt)}.st-empty{color:var(--text3)}
+.hint{font-size:11px;color:var(--text3);padding:6px 16px;border-top:1px solid var(--border-light);font-style:italic;background:var(--bg2)}
+.pt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px;border-top:1px solid var(--border-light)}
+.pt-field{display:flex;flex-direction:column;gap:4px}
+.pt-field label{font-size:11px;color:var(--text3);font-weight:500}
+.pt-field input{font-size:13px;padding:6px 9px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2);color:var(--text)}
+.gng-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:12px 16px;border-top:1px solid var(--border-light)}
+.gng-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text)}
+.gng-item input[type=checkbox]{accent-color:var(--green);width:15px;height:15px}
+.final-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px;border-top:1px solid var(--border-light)}
+.fbtn{padding:10px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;text-align:center;cursor:pointer;border:1.5px solid var(--border);background:var(--bg2);color:var(--text2);transition:all .15s}
+.fbtn:hover{background:var(--bg3)}
+.fbtn.active-go{border-color:var(--green);background:var(--green-bg);color:var(--green-txt)}
+.fbtn.active-nogo{border-color:var(--red);background:var(--red-bg);color:var(--red-txt)}
+.save-toast{position:fixed;bottom:20px;right:20px;background:#1a1a18;color:#fff;font-size:12px;padding:8px 16px;border-radius:var(--radius-sm);opacity:0;transition:opacity .3s;pointer-events:none;z-index:300}
+.save-toast.show{opacity:1}
+@media(max-width:500px){
+  .stats-bar{grid-template-columns:1fr 1fr}
+  .pt-actions{display:none}
+  .gng-grid,.final-grid,.pt-grid{grid-template-columns:1fr}
+  .lab-row .ref{min-width:70px}.lab-row input[type=text]{width:60px}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="app-header">
+  <div style="flex:1">
+    <h1>CT-P44 3.1 — Checklist de Elegibilidade</h1>
+    <p>Protocolo v3.0 · CELLTRION · Daratumumabe SC + Lenalidomida + Dexametasona · MM refratário/recidivante</p>
+  </div>
+  <button class="btn btn-primary" onclick="openModal()" id="btn-add-header">+ Novo paciente</button>
+</div>
+
+<!-- VIEW: LISTA -->
+<div id="view-list">
+<div class="page">
+  <div class="list-toolbar">
+    <input type="text" id="search" placeholder="Buscar paciente..." oninput="renderList()"/>
+    <button class="btn" onclick="exportAll()">Exportar todos ↗</button>
+  </div>
+  <div class="stats-bar">
+    <div class="stat-card"><div class="n" id="st-total">0</div><div class="l">Total</div></div>
+    <div class="stat-card"><div class="n" id="st-eleg" style="color:var(--green-txt)">0</div><div class="l">Elegíveis</div></div>
+    <div class="stat-card"><div class="n" id="st-noeleg" style="color:var(--red-txt)">0</div><div class="l">Não elegíveis</div></div>
+    <div class="stat-card"><div class="n" id="st-pend" style="color:var(--amber-txt)">0</div><div class="l">Em avaliação</div></div>
+  </div>
+  <div class="patient-grid" id="patient-grid"></div>
+</div>
+</div>
+
+<!-- VIEW: CHECKLIST -->
+<div id="view-form">
+<div class="form-page">
+  <div class="form-header">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <button class="btn-back" onclick="backToList()">← Lista</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-sm" onclick="copyNotion()">Copiar para Notion ↗</button>
+      <button class="btn btn-sm" style="color:var(--red-txt)" onclick="deletePatient()">Excluir</button>
+    </div>
+    <h2 id="form-title">Paciente</h2>
+    <p id="form-sub">Screening + C1D1</p>
+  </div>
+
+  <div id="verdict" class="verdict v-pend">Preencha o checklist para ver o resultado</div>
+  <div class="status-bar">
+    <div class="status-card sc-pend" id="gn-scr">Screening: 0/10</div>
+    <div class="status-card sc-pend" id="gn-c1">C1D1: 0/8</div>
+  </div>
+
+  <!-- DADOS -->
+  <div class="sec">
+    <div class="sec-hd" onclick="tog('pt')"><h3>📌 Dados do Paciente</h3><span class="tog" id="tog-pt">▼</span></div>
+    <div class="sec-body" id="body-pt">
+      <div class="pt-grid">
+        <div class="pt-field"><label>Idade</label><input type="text" id="pt-idade" placeholder="anos" oninput="save()"/></div>
+        <div class="pt-field"><label>Sexo</label><input type="text" id="pt-sexo" placeholder="M / F" oninput="save()"/></div>
+        <div class="pt-field"><label>Peso (kg)</label><input type="text" id="pt-peso" oninput="checkPeso()" placeholder="kg"/></div>
+        <div class="pt-field"><label>ECOG (0–2)</label><input type="text" id="pt-ecog" oninput="checkEcog()" placeholder="0 / 1 / 2"/></div>
+        <div class="pt-field"><label>Data triagem</label><input type="date" id="pt-date-scr" oninput="save()"/></div>
+        <div class="pt-field"><label>Data C1D1 previsto</label><input type="date" id="pt-date-c1" oninput="save()"/></div>
+      </div>
+      <div class="lab-row"><label>Peso ≤ 120 kg</label><span class="lab-st st-empty" id="peso-st">—</span></div>
+      <div class="lab-row"><label>ECOG-PS 0, 1 ou 2</label><span class="lab-st st-empty" id="ecog-st">—</span></div>
+    </div>
+  </div>
+
+  <!-- HEMATOLOGIA -->
+  <div class="sec">
+    <div class="sec-hd" onclick="tog('hem')"><h3>🩸 Hematologia</h3><span class="badge b-green">Inclusão nº 8</span><span class="tog" id="tog-hem">▼</span></div>
+    <div class="sec-body" id="body-hem">
+      <div class="lab-row"><label>Hb</label><span class="ref">≥ 7,5 g/dl</span><input type="text" id="lhb" placeholder="valor" oninput="upd()"><span class="lab-st st-empty" id="shb">—</span></div>
+      <div class="lab-row"><label>Plaquetas (MO ≤50% plasmócitos)</label><span class="ref">≥ 75 × 10⁹/l</span><input type="text" id="lplt" placeholder="valor" oninput="upd()"><span class="lab-st st-empty" id="splt">—</span></div>
+      <div class="lab-row"><label>Plaquetas (MO &gt;50% plasmócitos)</label><span class="ref">≥ 50 × 10⁹/l</span><input type="text" id="lplt2" placeholder="valor" oninput="upd()"><span class="lab-st st-empty" id="splt2">—</span></div>
+      <div class="lab-row"><label>ANC</label><span class="ref">≥ 1,0 × 10⁹/l</span><input type="text" id="lanc" placeholder="valor" oninput="upd()"><span class="lab-st st-empty" id="sanc">—</span></div>
+      <div class="hint">⚠️ Sem G-CSF/GM-CSF, transfusão ou EPO nos 14 dias anteriores</div>
+    </div>
+  </div>
+
+  <!-- FUNÇÃO RENAL -->
+  <div class="sec">
+    <div class="sec-hd" onclick="tog('renal')"><h3>🧪 Função Renal</h3><span class="tog" id="tog-renal">▼</span></div>
+    <div class="sec-body" id="body-renal">
+      <div class="lab-row"><label>Creatinina sérica</label><span class="ref">ref. local</span><input type="text" id="lcrea" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="lab-row"><label>CrCl (Cockcroft-Gault)</label><span class="ref">≥ 30 ml/min</span><input type="text" id="lcrcl" placeholder="valor" oninput="upd()"><span class="lab-st st-empty" id="scrcl">—</span></div>
+      <div class="hint">Alternativas: MDRD ou CKD-EPI (converter para ml/min)</div>
+    </div>
+  </div>
+
+  <!-- BIOQUÍMICA -->
+  <div class="sec">
+    <div class="sec-hd" onclick="tog('bio')"><h3>🔬 Bioquímica</h3><span class="tog" id="tog-bio">▼</span></div>
+    <div class="sec-body" id="body-bio">
+      <div class="lab-row"><label>AST (TGO)</label><span class="ref" style="font-size:11px">≤ 2,5 × LSN:</span><input type="text" id="lsn-ast" value="50" style="width:44px;font-size:11px;padding:3px 5px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2)" oninput="upd()"><input type="text" id="last" placeholder="U/L" oninput="upd()" style="width:72px"><span class="lab-st st-empty" id="sast">—</span></div>
+      <div class="lab-row"><label>ALT (TGP)</label><span class="ref" style="font-size:11px">≤ 2,5 × LSN:</span><input type="text" id="lsn-alt" value="50" style="width:44px;font-size:11px;padding:3px 5px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2)" oninput="upd()"><input type="text" id="lalt" placeholder="U/L" oninput="upd()" style="width:72px"><span class="lab-st st-empty" id="salt">—</span></div>
+      <div class="lab-row"><label>Fosfatase alcalina (FA)</label><span class="ref" style="font-size:11px">≤ 2,5 × LSN:</span><input type="text" id="lsn-fa" value="120" style="width:44px;font-size:11px;padding:3px 5px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2)" oninput="upd()"><input type="text" id="lfa" placeholder="U/L" oninput="upd()" style="width:72px"><span class="lab-st st-empty" id="sfa">—</span></div>
+      <div class="lab-row"><label>GGT</label><span class="ref">ref. local</span><input type="text" id="lggt" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="lab-row"><label>Bilirrubina total</label><span class="ref" style="font-size:11px">≤ 1,5 × LSN:</span><input type="text" id="lsn-bil" value="1.2" style="width:44px;font-size:11px;padding:3px 5px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2)" oninput="upd()"><input type="text" id="lbil" placeholder="mg/dl" oninput="upd()" style="width:72px"><span class="lab-st st-empty" id="sbil">—</span></div>
+      <div class="lab-row"><label>Bilirrubina direta</label><span class="ref">ref. local</span><input type="text" id="lbild" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="lab-row"><label>Cálcio total</label><span class="ref">ref. local</span><input type="text" id="lcalciot" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="lab-row"><label>Albumina</label><span class="ref">ref. local</span><input type="text" id="lalb" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="lab-row"><label>Cálcio corrigido</label><span class="ref">&lt; 13,5 mg/dl</span><input type="text" id="lcalcio" placeholder="valor" oninput="upd()"><span class="lab-st st-empty" id="scalcio">—</span></div>
+      <div class="lab-row"><label>Potássio</label><span class="ref">&gt; 3,0 mEq/l</span><input type="text" id="lpot" placeholder="valor" oninput="upd()"><span class="lab-st st-empty" id="spot">—</span></div>
+      <div class="lab-row"><label>Sódio</label><span class="ref">ref. local</span><input type="text" id="lsodio" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="lab-row"><label>Cloro</label><span class="ref">ref. local</span><input type="text" id="lcloro" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="lab-row"><label>Fósforo</label><span class="ref">ref. local</span><input type="text" id="lfosforo" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="lab-row"><label>Ureia</label><span class="ref">ref. local</span><input type="text" id="lureia" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="lab-row"><label>LDH</label><span class="ref">ref. local</span><input type="text" id="lldh" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="lab-row"><label>PCR</label><span class="ref">ref. local</span><input type="text" id="lpcr" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="lab-row"><label>Proteínas totais</label><span class="ref">ref. local</span><input type="text" id="lpt" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="lab-row"><label>Ácido úrico</label><span class="ref">ref. local</span><input type="text" id="lau" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="lab-row"><label>Glicose</label><span class="ref">ref. local</span><input type="text" id="lglic" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="lab-row"><label>CK / CPK</label><span class="ref">ref. local</span><input type="text" id="lck" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="lab-row"><label>CK-MB</label><span class="ref">ref. local</span><input type="text" id="lckmb" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+    </div>
+  </div>
+
+  <!-- DOENÇA IMWG -->
+  <div class="sec">
+    <div class="sec-hd" onclick="tog('imwg')"><h3>📊 Avaliação da Doença (IMWG)</h3><span class="badge b-green">Inclusão nº 2–5</span><span class="tog" id="tog-imwg">▼</span></div>
+    <div class="sec-body" id="body-imwg">
+      <div class="lab-row"><label>Proteína M sérica (SPEP)</label><span class="ref">≥ 1,0 g/dl</span><input type="text" id="lpm" placeholder="valor" oninput="upd()"><span class="lab-st st-empty" id="spm">—</span></div>
+      <div class="lab-row"><label>Proteína M urinária (UPEP 24h)</label><span class="ref">≥ 200 mg/24h</span><input type="text" id="lpmu" placeholder="valor" oninput="upd()"><span class="lab-st st-empty" id="spmu">—</span></div>
+      <div class="lab-row"><label>FLC envolvida</label><span class="ref">≥ 10 mg/dl</span><input type="text" id="lflc" placeholder="valor" oninput="upd()"><span class="lab-st st-empty" id="sflc">—</span></div>
+      <div class="row"><input type="checkbox" class="neu" id="flc-ratio" onchange="upd()"><label for="flc-ratio">Razão FLC sérica alterada</label></div>
+      <div class="row"><input type="checkbox" id="mensuravel" onchange="upd()"><label for="mensuravel">Doença mensurável confirmada</label></div>
+      <div class="row"><input type="checkbox" id="recid-refrat" onchange="upd()"><label for="recid-refrat">Doença recidivante ou refratária documentada</label></div>
+      <div class="row"><input type="checkbox" id="resp-anterior" onchange="upd()"><label for="resp-anterior">Resposta ≥ RP com pelo menos 1 esquema anterior</label></div>
+      <div class="row"><input type="checkbox" id="pd-ultima" onchange="upd()"><label for="pd-ultima">PD confirmada durante ou após a última linha de terapia</label></div>
+      <div class="lab-row"><label>Número de linhas anteriores</label><span class="ref">1 a 3</span><input type="text" id="llinhas" placeholder="nº" oninput="upd()"><span class="lab-st st-empty" id="slinhas">—</span></div>
+    </div>
+  </div>
+
+  <!-- MO + FISH -->
+  <div class="sec">
+    <div class="sec-hd" onclick="tog('mo')"><h3>🧬 Avaliação Medular + FISH</h3><span class="tog" id="tog-mo">▼</span></div>
+    <div class="sec-body" id="body-mo">
+      <div class="row"><input type="checkbox" class="neu" id="mo-asp" onchange="upd()"><label for="mo-asp">Aspirado / biópsia de MO realizado</label></div>
+      <div class="lab-row"><label>% plasmócitos na MO</label><span class="ref">—</span><input type="text" id="lplasm" placeholder="%" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="row"><input type="checkbox" class="neu" id="fish-17p" onchange="upd()"><label for="fish-17p">FISH: del(17p)</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="fish-414" onchange="upd()"><label for="fish-414">FISH: t(4;14)</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="fish-1416" onchange="upd()"><label for="fish-1416">FISH: t(14;16)</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="fish-1q" onchange="upd()"><label for="fish-1q">FISH: ganho / amplificação 1q</label></div>
+      <div class="lab-row"><label>Outro achado FISH</label><span class="ref">—</span><input type="text" id="lfish-outro" placeholder="descrever" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="hint">💡 Estratificação de risco e baseline</div>
+    </div>
+  </div>
+
+  <!-- IMAGEM -->
+  <div class="sec">
+    <div class="sec-hd" onclick="tog('img')"><h3>🖥️ Imagem Basal</h3><span class="tog" id="tog-img">▼</span></div>
+    <div class="sec-body" id="body-img">
+      <div class="row"><input type="checkbox" class="neu" id="petct" onchange="upd()"><label for="petct">PET-CT realizado</label></div>
+      <div class="lab-row"><label>Data do PET-CT</label><span class="ref">≤ 14 dias do C1D1</span><input type="date" id="lpetdt" style="width:150px;font-size:12px;padding:4px 7px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2)" oninput="save()"></div>
+      <div class="row"><input type="checkbox" class="neu" id="ext-med" onchange="upd()"><label for="ext-med">Doença extramedular presente</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="hiper-pet" onchange="upd()"><label for="hiper-pet">Lesões hipermetabólicas identificadas</label></div>
+      <div class="lab-row"><label>SUV máx</label><span class="ref">—</span><input type="text" id="lsuv" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="row"><input type="checkbox" class="neu" id="tc-rm" onchange="upd()"><label for="tc-rm">TC / RM disponível<span class="sub">RM com DWI recomendada para plasmocitoma extramedular</span></label></div>
+      <div class="hint">💡 Realizado em até 14 dias antes da dose no Dia 1 do ciclo</div>
+    </div>
+  </div>
+
+  <!-- IMUNO-HEMATOLOGIA -->
+  <div class="sec">
+    <div class="sec-hd" onclick="tog('imuno')"><h3>🧫 Imuno-hematologia</h3><span class="badge b-amber">Obrigatório antes do DARA</span><span class="tog" id="tog-imuno">▼</span></div>
+    <div class="sec-body" id="body-imuno">
+      <div class="row"><input type="checkbox" id="tipo-abo" onchange="upd()"><label for="tipo-abo">Tipagem sanguínea ABO/Rh realizada</label></div>
+      <div class="row"><input type="checkbox" id="fenotipagem" onchange="upd()"><label for="fenotipagem">Fenotipagem eritrocitária realizada</label></div>
+      <div class="row"><input type="checkbox" id="coombs" onchange="upd()"><label for="coombs">Coombs indireto (IAT) realizado</label></div>
+      <div class="hint">⚠️ Coletar ANTES da 1ª dose de daratumumabe</div>
+    </div>
+  </div>
+
+  <!-- SOROLOGIAS -->
+  <div class="sec">
+    <div class="sec-hd" onclick="tog('soro')"><h3>🦠 Sorologias</h3><span class="badge b-green">Screening obrigatório</span><span class="tog" id="tog-soro">▼</span></div>
+    <div class="sec-body" id="body-soro">
+      <div class="row"><input type="checkbox" id="hiv" onchange="upd()"><label for="hiv">HIV — Negativo</label></div>
+      <div class="row"><input type="checkbox" id="hbsag" onchange="upd()"><label for="hbsag">HBsAg — Negativo</label></div>
+      <div class="row"><input type="checkbox" id="antihbc" onchange="upd()"><label for="antihbc">Anti-HBc total — coletado<span class="sub">Se positivo → avaliar DNA HBV</span></label></div>
+      <div class="row"><input type="checkbox" id="antihcv" onchange="upd()"><label for="antihcv">Anti-HCV — Negativo</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="hbvdna" onchange="upd()"><label for="hbvdna">DNA HBV realizado (se anti-HBc positivo ou indicação clínica)</label></div>
+    </div>
+  </div>
+
+  <!-- EXCLUSÃO -->
+  <div class="sec">
+    <div class="sec-hd" onclick="tog('exc')"><h3>🚫 Critérios de Exclusão</h3><span class="badge b-red">Qualquer um exclui</span><span class="tog" id="tog-exc">▼</span></div>
+    <div class="sec-body" id="body-exc">
+      <div class="row"><input type="checkbox" class="exc" id="ex-cd38" onchange="upd()"><label for="ex-cd38">Uso prévio de daratumumabe ou outro anti-CD38</label></div>
+      <div class="row"><input type="checkbox" class="exc" id="ex-len" onchange="upd()"><label for="ex-len">Refratariedade ou intolerância à lenalidomida</label></div>
+      <div class="row"><input type="checkbox" class="exc" id="ex-infec" onchange="upd()"><label for="ex-infec">Infecção ativa sistêmica (≤ 2 semanas antes da randomização)</label></div>
+      <div class="row"><input type="checkbox" class="exc" id="ex-amil" onchange="upd()"><label for="ex-amil">Amiloidose AL, POEMS, Waldenström, leucemia de plasmócitos, MM latente ou MGUS</label></div>
+      <div class="row"><input type="checkbox" class="exc" id="ex-asma" onchange="upd()"><label for="ex-asma">Asma moderada/grave não controlada ou VEF1 &lt; 50%</label></div>
+      <div class="row"><input type="checkbox" class="exc" id="ex-dpoc" onchange="upd()"><label for="ex-dpoc">DPOC com VEF1 &lt; 50%</label></div>
+      <div class="row"><input type="checkbox" class="exc" id="ex-cardio" onchange="upd()"><label for="ex-cardio">Doença cardíaca significativa (IAM ≤ 6 meses, ICC III-IV NYHA)</label></div>
+      <div class="row"><input type="checkbox" class="exc" id="ex-tac" onchange="upd()"><label for="ex-tac">TACT ≤ 12 semanas ou imunidade não recuperada</label></div>
+      <div class="row"><input type="checkbox" class="exc" id="ex-alotx" onchange="upd()"><label for="ex-alotx">Transplante alogênico prévio (qualquer momento)</label></div>
+      <div class="row"><input type="checkbox" class="exc" id="ex-aler" onchange="upd()"><label for="ex-aler">Alergia a mAbs, hialuronidase, dexametasona ou lenalidomida</label></div>
+      <div class="row"><input type="checkbox" class="exc" id="ex-cirur" onchange="upd()"><label for="ex-cirur">Cirurgia de grande porte ≤ 4 semanas<span class="sub">Exceto anestesia local, cifoplastia ou vertebroplastia</span></label></div>
+      <div class="row"><input type="checkbox" class="exc" id="ex-men" onchange="upd()"><label for="ex-men">Envolvimento meníngeo conhecido do MM</label></div>
+    </div>
+  </div>
+
+  <!-- WASHOUT -->
+  <div class="sec">
+    <div class="sec-hd" onclick="tog('wash')"><h3>⏱️ Washout</h3><span class="tog" id="tog-wash">▼</span></div>
+    <div class="sec-body" id="body-wash">
+      <div class="row"><input type="checkbox" id="w-ter" onchange="upd()"><label for="w-ter">Última terapia antimieloma &gt; 14 dias (ou 5 meias-vidas)</label></div>
+      <div class="row"><input type="checkbox" id="w-rt" onchange="upd()"><label for="w-rt">Radioterapia &gt; 14 dias</label></div>
+      <div class="row"><input type="checkbox" id="w-tact" onchange="upd()"><label for="w-tact">TACT &gt; 12 semanas</label></div>
+      <div class="row"><input type="checkbox" id="w-vac" onchange="upd()"><label for="w-vac">Vacina viva / anti-COVID-19 &gt; 14 dias</label></div>
+      <div class="row"><input type="checkbox" id="w-plas" onchange="upd()"><label for="w-plas">Plasmaférese &gt; 28 dias</label></div>
+    </div>
+  </div>
+
+  <!-- OUTROS -->
+  <div class="sec">
+    <div class="sec-hd" onclick="tog('out')"><h3>🧪 Outros Exames</h3><span class="tog" id="tog-out">▼</span></div>
+    <div class="sec-body" id="body-out">
+      <div class="row"><input type="checkbox" class="neu" id="ecg" onchange="upd()"><label for="ecg">ECG</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="grav1" onchange="upd()"><label for="grav1">Teste de gravidez — soro (10–14 dias antes do C1D1)</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="grav2" onchange="upd()"><label for="grav2">Teste de gravidez — urina (Dia 1 Ciclo 1)</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="espiro" onchange="upd()"><label for="espiro">Espirometria / VEF1 (se DPOC ou asma suspeita)</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="urina1" onchange="upd()"><label for="urina1">Urina tipo 1</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="upep" onchange="upd()"><label for="upep">UPEP / Coleta de urina 24h (antes da dose)</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="eortc" onchange="upd()"><label for="eortc">Questionário EORTC QLQ-C30 (qualidade de vida — baseline)</label></div>
+    </div>
+  </div>
+
+  <!-- CHECKLIST SCR -->
+  <div class="sec">
+    <div class="sec-hd" onclick="tog('scr')"><h3>✅ Checklist Screening</h3><span class="badge b-blue">Pré-randomização</span><span class="tog" id="tog-scr">▼</span></div>
+    <div class="sec-body" id="body-scr">
+      <div class="row"><input type="checkbox" class="neu" id="s-tcle" onchange="upd()"><label for="s-tcle">TCLE assinado</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="s-hemo" onchange="upd()"><label for="s-hemo">Hemograma completo</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="s-bio" onchange="upd()"><label for="s-bio">Bioquímica completa</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="s-doenca" onchange="upd()"><label for="s-doenca">Doença mensurável documentada</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="s-soro" onchange="upd()"><label for="s-soro">Sorologias completas</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="s-ecg" onchange="upd()"><label for="s-ecg">ECG</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="s-fish" onchange="upd()"><label for="s-fish">FISH</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="s-img" onchange="upd()"><label for="s-img">PET-CT / TC / RM basal</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="s-tipo" onchange="upd()"><label for="s-tipo">Tipagem + Fenotipagem + Coombs indireto</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="s-mo" onchange="upd()"><label for="s-mo">Aspirado / biópsia MO</label></div>
+    </div>
+  </div>
+
+  <!-- CHECKLIST C1D1 -->
+  <div class="sec">
+    <div class="sec-hd" onclick="tog('c1d1')"><h3>🟢 Checklist C1D1</h3><span class="badge b-green">Dia da 1ª dose</span><span class="tog" id="tog-c1d1">▼</span></div>
+    <div class="sec-body" id="body-c1d1">
+      <div class="row"><input type="checkbox" class="neu" id="c-reconf" onchange="upd()"><label for="c-reconf">Critérios reconfirmados no dia</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="c-hemo" onchange="upd()"><label for="c-hemo">Hemograma do dia</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="c-bio" onchange="upd()"><label for="c-bio">Bioquímica do dia</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="c-tipo" onchange="upd()"><label for="c-tipo">Tipagem + Coombs confirmados (pré-DARA)</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="c-grav" onchange="upd()"><label for="c-grav">Teste de gravidez urina (se aplicável)</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="c-upep" onchange="upd()"><label for="c-upep">Coleta urina 24h concluída antes da dose</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="c-premed" onchange="upd()"><label for="c-premed">Pré-medicação administrada</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="c-lib" onchange="upd()"><label for="c-lib">Liberação do tratamento pelo investigador</label></div>
+    </div>
+  </div>
+
+  <!-- GO/NO-GO -->
+  <div class="sec">
+    <div class="sec-hd" onclick="tog('gng')"><h3>🎯 GO / NO-GO</h3><span class="tog" id="tog-gng">▼</span></div>
+    <div class="sec-body" id="body-gng">
+      <div class="gng-grid">
+        <div class="gng-item"><input type="checkbox" id="g1" onchange="upd()"><label for="g1">ANC ≥ 1.000</label></div>
+        <div class="gng-item"><input type="checkbox" id="g2" onchange="upd()"><label for="g2">Plaquetas ≥ 75.000</label></div>
+        <div class="gng-item"><input type="checkbox" id="g3" onchange="upd()"><label for="g3">CrCl ≥ 30 ml/min</label></div>
+        <div class="gng-item"><input type="checkbox" id="g4" onchange="upd()"><label for="g4">AST/ALT ≤ 2,5 × LSN</label></div>
+        <div class="gng-item"><input type="checkbox" id="g5" onchange="upd()"><label for="g5">FA ≤ 2,5 × LSN</label></div>
+        <div class="gng-item"><input type="checkbox" id="g6" onchange="upd()"><label for="g6">Bilirrubina ≤ 1,5 × LSN</label></div>
+        <div class="gng-item"><input type="checkbox" id="g7" onchange="upd()"><label for="g7">Potássio &gt; 3,0</label></div>
+        <div class="gng-item"><input type="checkbox" id="g8" onchange="upd()"><label for="g8">Cálcio corrigido &lt; 13,5</label></div>
+        <div class="gng-item"><input type="checkbox" id="g9" onchange="upd()"><label for="g9">Sem infecção ativa</label></div>
+        <div class="gng-item"><input type="checkbox" id="g10" onchange="upd()"><label for="g10">Tipagem + Coombs OK</label></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OBSERVAÇÕES -->
+  <div class="sec">
+    <div class="sec-hd" onclick="tog('obs')"><h3>📝 Observações</h3><span style="font-size:11px;color:var(--text3);font-weight:400">Resultados pendentes, anotações clínicas</span><span class="tog" id="tog-obs">▼</span></div>
+    <div class="sec-body" id="body-obs">
+      <div style="padding:12px 16px;border-top:1px solid var(--border-light)">
+        <textarea id="obs-texto" placeholder="Ex: aguardando resultado do DNA HBV, FISH em andamento, creatinina a repetir..." oninput="save()" style="width:100%;min-height:90px;font-size:13px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2);color:var(--text);font-family:inherit;resize:vertical;line-height:1.5"></textarea>
+      </div>
+      <div style="padding:8px 16px;border-top:1px solid var(--border-light)">
+        <label style="font-size:11px;color:var(--text3);font-weight:500;display:block;margin-bottom:4px">Pendências / itens faltando</label>
+        <textarea id="obs-pendencias" placeholder="Ex: UPEP 24h, fenotipagem eritrocitária, avaliação cardiológica..." oninput="save()" style="width:100%;min-height:70px;font-size:13px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2);color:var(--text);font-family:inherit;resize:vertical;line-height:1.5"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- DECISÃO -->
+  <div class="sec">
+    <div class="sec-hd" onclick="tog('fin')"><h3>🎯 Decisão Final</h3><span class="tog" id="tog-fin">▼</span></div>
+    <div class="sec-body" id="body-fin">
+      <div class="final-grid">
+        <div class="fbtn" id="btn-eleg" onclick="setFinal('eleg')">Elegível — SIM ✅</div>
+        <div class="fbtn" id="btn-noeleg" onclick="setFinal('noeleg')">Elegível — NÃO ❌</div>
+        <div class="fbtn" id="btn-go" onclick="setFinal('go')">C1D1 — GO 🟢</div>
+        <div class="fbtn" id="btn-nogo" onclick="setFinal('nogo')">C1D1 — NO GO 🔴</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- MODAL NOVO PACIENTE -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2>Novo paciente</h2>
+    <div class="form-field"><label>Nome / ID *</label><input type="text" id="new-name" placeholder="Nome completo ou ID"/></div>
+    <div class="form-field"><label>Data de triagem</label><input type="date" id="new-date"/></div>
+    <div class="form-field"><label>Centro / Investigador</label><input type="text" id="new-centro" placeholder="opcional"/></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="createPatient()">Criar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="save-toast" id="toast">Salvo automaticamente</div>
+
+<script>
+// ── CAMPOS ──
+const CHECKBOX_IDS=['flc-ratio','mensuravel','recid-refrat','resp-anterior','pd-ultima','mo-asp','fish-17p','fish-414','fish-1416','fish-1q','petct','ext-med','hiper-pet','tc-rm','tipo-abo','fenotipagem','coombs','hiv','hbsag','antihbc','antihcv','hbvdna','ex-cd38','ex-len','ex-infec','ex-amil','ex-asma','ex-dpoc','ex-cardio','ex-tac','ex-alotx','ex-aler','ex-cirur','ex-men','w-ter','w-rt','w-tact','w-vac','w-plas','ecg','grav1','grav2','espiro','urina1','upep','eortc','s-tcle','s-hemo','s-bio','s-doenca','s-soro','s-ecg','s-fish','s-img','s-tipo','s-mo','c-reconf','c-hemo','c-bio','c-tipo','c-grav','c-upep','c-premed','c-lib','g1','g2','g3','g4','g5','g6','g7','g8','g9','g10'];
+const TEXT_IDS=['pt-idade','pt-sexo','pt-peso','pt-ecog','pt-date-scr','pt-date-c1','lhb','lplt','lplt2','lanc','lcrea','lcrcl','lsn-ast','last','lsn-alt','lalt','lsn-fa','lfa','lggt','lsn-bil','lbil','lbild','lcalciot','lalb','lcalcio','lpot','lsodio','lcloro','lfosforo','lureia','lldh','lpcr','lpt','lau','lglic','lck','lckmb','lpm','lpmu','lflc','llinhas','lplasm','lfish-outro','lpetdt','lsuv','obs-texto','obs-pendencias'];
+
+const labs=[
+  {i:'lhb',s:'shb',min:7.5,max:null},{i:'lplt',s:'splt',min:75,max:null},
+  {i:'lplt2',s:'splt2',min:50,max:null},{i:'lanc',s:'sanc',min:1.0,max:null},
+  {i:'lcrcl',s:'scrcl',min:30,max:null},
+  {i:'lcalcio',s:'scalcio',min:null,max:13.5},
+  {i:'lpot',s:'spot',min:3.0,max:null},{i:'lpm',s:'spm',min:1.0,max:null},
+  {i:'lpmu',s:'spmu',min:200,max:null},{i:'lflc',s:'sflc',min:10,max:null},
+  {i:'llinhas',s:'slinhas',min:1,max:3},
+];
+const lsnLabs=[
+  {i:'last',s:'sast',lsn:'lsn-ast',mult:2.5,def:50},
+  {i:'lalt',s:'salt',lsn:'lsn-alt',mult:2.5,def:50},
+  {i:'lfa',s:'sfa',lsn:'lsn-fa',mult:2.5,def:120},
+  {i:'lbil',s:'sbil',lsn:'lsn-bil',mult:1.5,def:1.2},
+];
+
+// ── STORAGE ──
+let patients={};
+let currentId=null;
+let fd={eleg:null,c1d1:null};
+
+function loadAll(){patients=JSON.parse(localStorage.getItem('ctp44_patients')||'{}');}
+function saveAll(){localStorage.setItem('ctp44_patients',JSON.stringify(patients));}
+
+// ── LISTA ──
+function renderList(){
+  loadAll();
+  const q=(document.getElementById('search').value||'').toLowerCase();
+  const ids=Object.keys(patients).filter(id=>patients[id].name.toLowerCase().includes(q));
+  const grid=document.getElementById('patient-grid');
+  let eleg=0,noeleg=0,pend=0;
+  Object.values(patients).forEach(p=>{
+    if(p.final_eleg===true)eleg++;
+    else if(p.final_eleg===false)noeleg++;
+    else pend++;
+  });
+  document.getElementById('st-total').textContent=Object.keys(patients).length;
+  document.getElementById('st-eleg').textContent=eleg;
+  document.getElementById('st-noeleg').textContent=noeleg;
+  document.getElementById('st-pend').textContent=pend;
+  if(!ids.length){grid.innerHTML='<div class="empty-state"><div class="icon">👤</div><h3>'+(q?'Nenhum paciente encontrado':'Nenhum paciente cadastrado')+'</h3><p>'+(q?'Tente outro nome ou ID':'Clique em "+ Novo paciente" para começar')+'</p></div>';return;}
+  grid.innerHTML=ids.sort((a,b)=>patients[b].updated-patients[a].updated).map(id=>{
+    const p=patients[id];
+    const excFail=p.excFail||0;
+    const scrOk=p.scrOk||0;
+    const c1Ok=p.c1Ok||0;
+    let status,avClass;
+    if(p.final_eleg===true){status='Elegível ✅';avClass='av-ok';}
+    else if(p.final_eleg===false||excFail>0){status='Não elegível ❌';avClass='av-fail';}
+    else{status='Em avaliação';avClass='av-pend';}
+    const initials=p.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    const dateStr=p.date_scr?new Date(p.date_scr).toLocaleDateString('pt-BR'):'—';
+    return `<div class="pt-card" onclick="openPatient('${id}')">
+      <div class="pt-avatar ${avClass}">${initials}</div>
+      <div class="pt-info">
+        <h3>${p.name}</h3>
+        <p>Triagem: ${dateStr}${p.centro?' · '+p.centro:''}</p>
+        <div class="pt-badges">
+          <span class="badge ${p.final_eleg===true?'b-green':p.final_eleg===false||excFail>0?'b-red':'b-amber'}">${status}</span>
+          <span class="badge b-blue">Screening ${scrOk}/10</span>
+          <span class="badge ${c1Ok===8?'b-green':'b-gray'}">C1D1 ${c1Ok}/8</span>
+          ${excFail>0?`<span class="badge b-red">${excFail} exclusão${excFail>1?'ões':''}</span>`:''}
+        </div>
+      </div>
+      <div class="pt-actions">
+        <button class="btn btn-sm" onclick="event.stopPropagation();openPatient('${id}')">Abrir</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── MODAL ──
+function openModal(){document.getElementById('modal').classList.add('open');setTimeout(()=>document.getElementById('new-name').focus(),100);}
+function closeModal(){document.getElementById('modal').classList.remove('open');document.getElementById('new-name').value='';document.getElementById('new-date').value='';document.getElementById('new-centro').value='';}
+function createPatient(){
+  const name=document.getElementById('new-name').value.trim();
+  if(!name){alert('Informe o nome ou ID do paciente.');return;}
+  const id='pt_'+Date.now();
+  patients[id]={id,name,date_scr:document.getElementById('new-date').value,centro:document.getElementById('new-centro').value,updated:Date.now(),checkboxes:{},texts:{},final_eleg:null,final_c1d1:null,excFail:0,scrOk:0,c1Ok:0};
+  saveAll();closeModal();openPatient(id);
+}
+
+// ── ABRIR PACIENTE ──
+function openPatient(id){
+  loadAll();
+  currentId=id;
+  const p=patients[id];
+  document.getElementById('form-title').textContent=p.name;
+  document.getElementById('form-sub').textContent='Triagem: '+(p.date_scr?new Date(p.date_scr).toLocaleDateString('pt-BR'):'—')+(p.centro?' · '+p.centro:'');
+  fd={eleg:p.final_eleg,c1d1:p.final_c1d1};
+  // restore checkboxes
+  CHECKBOX_IDS.forEach(cid=>{const el=document.getElementById(cid);if(el)el.checked=!!(p.checkboxes&&p.checkboxes[cid]);});
+  // restore texts
+  TEXT_IDS.forEach(tid=>{const el=document.getElementById(tid);if(el)el.value=(p.texts&&p.texts[tid])||'';
+    // restore LSN defaults if empty
+    if(tid==='lsn-ast'&&el&&!el.value)el.value='50';
+    if(tid==='lsn-alt'&&el&&!el.value)el.value='50';
+    if(tid==='lsn-fa'&&el&&!el.value)el.value='120';
+    if(tid==='lsn-bil'&&el&&!el.value)el.value='1.2';
+  });
+  // restore final buttons
+  ['btn-eleg','btn-noeleg','btn-go','btn-nogo'].forEach(b=>document.getElementById(b).className='fbtn');
+  if(fd.eleg===true)document.getElementById('btn-eleg').className='fbtn active-go';
+  if(fd.eleg===false)document.getElementById('btn-noeleg').className='fbtn active-nogo';
+  if(fd.c1d1===true)document.getElementById('btn-go').className='fbtn active-go';
+  if(fd.c1d1===false)document.getElementById('btn-nogo').className='fbtn active-nogo';
+  document.getElementById('view-list').style.display='none';
+  document.getElementById('view-form').style.display='block';
+  window.scrollTo(0,0);
+  upd();
+}
+
+function backToList(){
+  document.getElementById('view-form').style.display='none';
+  document.getElementById('view-list').style.display='block';
+  currentId=null;renderList();
+}
+
+function deletePatient(){
+  if(!currentId)return;
+  if(!confirm('Excluir este paciente? Esta ação não pode ser desfeita.'))return;
+  delete patients[currentId];saveAll();backToList();
+}
+
+// ── SAVE ──
+let saveTimer=null;
+function save(){
+  if(!currentId)return;
+  if(saveTimer)clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    const p=patients[currentId];
+    if(!p)return;
+    p.checkboxes={};
+    CHECKBOX_IDS.forEach(cid=>{const el=document.getElementById(cid);if(el)p.checkboxes[cid]=el.checked;});
+    p.texts={};
+    TEXT_IDS.forEach(tid=>{const el=document.getElementById(tid);if(el)p.texts[tid]=el.value;});
+    p.final_eleg=fd.eleg;p.final_c1d1=fd.c1d1;
+    p.updated=Date.now();
+    // compute summary stats for list view
+    const excIds=['ex-cd38','ex-len','ex-infec','ex-amil','ex-asma','ex-dpoc','ex-cardio','ex-tac','ex-alotx','ex-aler','ex-cirur','ex-men'];
+    p.excFail=excIds.filter(id=>p.checkboxes[id]).length;
+    const scrIds=['s-tcle','s-hemo','s-bio','s-doenca','s-soro','s-ecg','s-fish','s-img','s-tipo','s-mo'];
+    p.scrOk=scrIds.filter(id=>p.checkboxes[id]).length;
+    const c1Ids=['c-reconf','c-hemo','c-bio','c-tipo','c-grav','c-upep','c-premed','c-lib'];
+    p.c1Ok=c1Ids.filter(id=>p.checkboxes[id]).length;
+    saveAll();
+    const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500);
+  },600);
+}
+
+// ── UPDS ──
+function checkPeso(){
+  const v=parseFloat(document.getElementById('pt-peso').value);
+  const s=document.getElementById('peso-st');
+  if(isNaN(v)){s.textContent='—';s.className='lab-st st-empty';}
+  else{s.textContent=v<=120?'OK':'EXCLUI';s.className=v<=120?'lab-st st-ok':'lab-st st-fail';}
+  upd();
+}
+function checkEcog(){
+  const v=parseInt(document.getElementById('pt-ecog').value);
+  const s=document.getElementById('ecog-st');
+  if(isNaN(v)){s.textContent='—';s.className='lab-st st-empty';}
+  else{const ok=v>=0&&v<=2;s.textContent=ok?'OK':'FALHA';s.className=ok?'lab-st st-ok':'lab-st st-fail';}
+  upd();
+}
+function upd(){
+  labs.forEach(r=>{
+    const el=document.getElementById(r.i);const se=document.getElementById(r.s);
+    if(!el||!se)return;
+    const v=parseFloat(el.value.replace(',','.'));
+    if(isNaN(v)){se.textContent='—';se.className='lab-st st-empty';return;}
+    let ok=true;if(r.min!==null&&v<r.min)ok=false;if(r.max!==null&&v>r.max)ok=false;
+    se.textContent=ok?'OK':'FORA';se.className=ok?'lab-st st-ok':'lab-st st-fail';
+  });
+  lsnLabs.forEach(r=>{
+    const el=document.getElementById(r.i);const se=document.getElementById(r.s);const lsnEl=document.getElementById(r.lsn);
+    if(!el||!se)return;
+    const v=parseFloat(el.value.replace(',','.'));
+    const lsnVal=lsnEl?parseFloat(lsnEl.value.replace(',','.'))||r.def:r.def;
+    const limit=r.mult*lsnVal;
+    if(isNaN(v)){se.textContent='—';se.className='lab-st st-empty';return;}
+    const ok=v<=limit;
+    se.textContent=ok?'OK':'FORA';se.className=ok?'lab-st st-ok':'lab-st st-fail';
+    if(se.title!==undefined)se.title='Limite: '+limit.toFixed(1);
+  });
+  const excIds=['ex-cd38','ex-len','ex-infec','ex-amil','ex-asma','ex-dpoc','ex-cardio','ex-tac','ex-alotx','ex-aler','ex-cirur','ex-men'];
+  const excFail=excIds.filter(id=>document.getElementById(id)?.checked).length;
+  const pesoBad=document.getElementById('peso-st').textContent==='EXCLUI';
+  const ecogBad=document.getElementById('ecog-st').textContent==='FALHA';
+  const vd=document.getElementById('verdict');
+  if(excFail>0||pesoBad||ecogBad){vd.textContent='Paciente NÃO ELEGÍVEL — '+(excFail+(pesoBad?1:0)+(ecogBad?1:0))+' critério(s) de exclusão presente(s)';vd.className='verdict v-fail';}
+  else{vd.textContent='Sem exclusões identificadas — continue verificando os critérios de inclusão';vd.className='verdict v-ok';}
+  const scrIds=['s-tcle','s-hemo','s-bio','s-doenca','s-soro','s-ecg','s-fish','s-img','s-tipo','s-mo'];
+  const scrOk=scrIds.filter(id=>document.getElementById(id)?.checked).length;
+  const gs=document.getElementById('gn-scr');gs.textContent='Screening: '+scrOk+'/10';gs.className='status-card '+(scrOk===10?'sc-ok':'sc-pend');
+  const c1Ids=['c-reconf','c-hemo','c-bio','c-tipo','c-grav','c-upep','c-premed','c-lib'];
+  const c1Ok=c1Ids.filter(id=>document.getElementById(id)?.checked).length;
+  const gc=document.getElementById('gn-c1');gc.textContent='C1D1: '+c1Ok+'/8';gc.className='status-card '+(c1Ok===8?'sc-ok':'sc-pend');
+  save();
+}
+
+function setFinal(b){
+  if(b==='eleg'){fd.eleg=true;document.getElementById('btn-eleg').className='fbtn active-go';document.getElementById('btn-noeleg').className='fbtn';}
+  else if(b==='noeleg'){fd.eleg=false;document.getElementById('btn-noeleg').className='fbtn active-nogo';document.getElementById('btn-eleg').className='fbtn';}
+  else if(b==='go'){fd.c1d1=true;document.getElementById('btn-go').className='fbtn active-go';document.getElementById('btn-nogo').className='fbtn';}
+  else if(b==='nogo'){fd.c1d1=false;document.getElementById('btn-nogo').className='fbtn active-nogo';document.getElementById('btn-go').className='fbtn';}
+  save();
+}
+
+function tog(sec){
+  const b=document.getElementById('body-'+sec);const t=document.getElementById('tog-'+sec);
+  if(!b||!t)return;
+  const col=b.classList.contains('collapsed');
+  b.classList.toggle('collapsed',!col);t.textContent=col?'▼':'▶';
+}
+
+// ── EXPORT ──
+function gv(id){const el=document.getElementById(id);return el?el.value||'—':'—';}
+function gc2(id){const el=document.getElementById(id);return el?el.checked:false;}
+function box(id){return gc2(id)?'- [x] ':'- [ ] ';}
+function labLine(id,sid,label){const val=gv(id);const st=document.getElementById(sid)?document.getElementById(sid).textContent:'—';return '- **'+label+':** '+val+' → '+st;}
+
+function copyNotion(){
+  const p=currentId?patients[currentId]:{name:'—'};
+  const L=[];
+  L.push('# CT-P44 3.1 — Screening + C1D1');
+  L.push('- **Paciente:** '+p.name);
+  L.push('- **Triagem:** '+(p.date_scr?new Date(p.date_scr).toLocaleDateString('pt-BR'):'—'));
+  L.push('- **Idade:** '+gv('pt-idade')+' | **Sexo:** '+gv('pt-sexo')+' | **Peso:** '+gv('pt-peso')+' kg | **ECOG:** '+gv('pt-ecog'));
+  L.push('');
+  L.push('## 🩸 Hematologia');
+  L.push(labLine('lhb','shb','Hb (≥7,5 g/dl)'));L.push(labLine('lplt','splt','Plaquetas (≥75×10⁹/l)'));L.push(labLine('lanc','sanc','ANC (≥1,0×10⁹/l)'));
+  L.push('## 🧪 Renal');L.push('- **Creatinina:** '+gv('lcrea'));L.push(labLine('lcrcl','scrcl','CrCl (≥30 ml/min)'));
+  L.push('## 🔬 Bioquímica');
+  [['last','sast','AST'],['lalt','salt','ALT'],['lfa','sfa','FA'],['lbil','sbil','Bil total'],['lcalcio','scalcio','Cálcio corrigido'],['lpot','spot','Potássio']].forEach(r=>L.push(labLine(r[0],r[1],r[2])));
+  L.push('## 📊 Doença');L.push(labLine('lpm','spm','Prot M sérica'));L.push(labLine('llinhas','slinhas','Linhas anteriores'));
+  [['mensuravel','Doença mensurável'],['recid-refrat','Recidivante/refratária'],['resp-anterior','Resposta ≥ RP anterior'],['pd-ultima','PD após última linha']].forEach(r=>L.push(box(r[0])+r[1]));
+  L.push('## 🧫 Imuno-hematologia');[['tipo-abo','Tipagem ABO/Rh'],['fenotipagem','Fenotipagem'],['coombs','Coombs indireto']].forEach(r=>L.push(box(r[0])+r[1]));
+  L.push('## 🦠 Sorologias');[['hiv','HIV Neg'],['hbsag','HBsAg Neg'],['antihbc','Anti-HBc coletado'],['antihcv','Anti-HCV Neg']].forEach(r=>L.push(box(r[0])+r[1]));
+  L.push('## 🚫 Exclusões');['ex-cd38','ex-len','ex-infec','ex-amil','ex-asma','ex-dpoc','ex-cardio','ex-tac','ex-alotx','ex-aler','ex-cirur','ex-men'].forEach(id=>L.push(box(id)+(gc2(id)?'**PRESENTE**':'ausente')+' — '+id.replace('ex-','')));
+  L.push('## ✅ Screening');['s-tcle','s-hemo','s-bio','s-doenca','s-soro','s-ecg','s-fish','s-img','s-tipo','s-mo'].forEach(id=>L.push(box(id)+id));
+  L.push('## 🟢 C1D1');['c-reconf','c-hemo','c-bio','c-tipo','c-grav','c-upep','c-premed','c-lib'].forEach(id=>L.push(box(id)+id));
+  L.push('## 🎯 Decisão');L.push('- **Elegível:** '+(fd.eleg===true?'✅ SIM':fd.eleg===false?'❌ NÃO':'pendente'));L.push('- **C1D1:** '+(fd.c1d1===true?'🟢 GO':fd.c1d1===false?'🔴 NO GO':'pendente'));
+  const obsTexto=gv('obs-texto');const obsPend=gv('obs-pendencias');
+  if(obsTexto!=='—'||obsPend!=='—'){
+    L.push('');L.push('## 📝 Observações');
+    if(obsTexto!=='—')L.push(obsTexto);
+    if(obsPend!=='—'){L.push('');L.push('**Pendências:**');L.push(obsPend);}
+  }
+  navigator.clipboard.writeText(L.join('\n')).then(()=>{const t=document.getElementById('toast');t.textContent='Copiado para o Notion!';t.classList.add('show');setTimeout(()=>{t.classList.remove('show');t.textContent='Salvo automaticamente';},2000);});
+}
+
+function exportAll(){
+  loadAll();
+  const ids=Object.keys(patients);
+  if(!ids.length){alert('Nenhum paciente cadastrado.');return;}
+  const lines=['# CT-P44 3.1 — Relatório Geral','Data: '+new Date().toLocaleDateString('pt-BR'),'Total: '+ids.length+' pacientes',''];
+  ids.forEach(id=>{
+    const p=patients[id];
+    lines.push('## '+p.name);
+    lines.push('- Triagem: '+(p.date_scr?new Date(p.date_scr).toLocaleDateString('pt-BR'):'—'));
+    lines.push('- Exclusões detectadas: '+(p.excFail||0));
+    lines.push('- Screening: '+(p.scrOk||0)+'/10');
+    lines.push('- C1D1: '+(p.c1Ok||0)+'/8');
+    lines.push('- Elegível: '+(p.final_eleg===true?'✅ SIM':p.final_eleg===false?'❌ NÃO':'pendente'));
+    lines.push('- C1D1: '+(p.final_c1d1===true?'🟢 GO':p.final_c1d1===false?'🔴 NO GO':'pendente'));
+    lines.push('');
+  });
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>alert('Relatório geral copiado!'));
+}
+
+// ── INIT ──
+loadAll();renderList();
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+</script>
+</body>
+</html>
