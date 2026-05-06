@@ -711,28 +711,54 @@ function copyNotion(){
     if(obsTexto!=='—')L.push(obsTexto);
     if(obsPend!=='—'){L.push('');L.push('**Pendências:**');L.push(obsPend);}
   }
-  navigator.clipboard.writeText(L.join('\n')).then(()=>{const t=document.getElementById('toast');t.textContent='Copiado para o Notion!';t.classList.add('show');setTimeout(()=>{t.classList.remove('show');t.textContent='Salvo automaticamente';},2000);});
+  const text=L.join('\n');
+  if(navigator.clipboard&&window.isSecureContext){
+    navigator.clipboard.writeText(text).then(()=>{showToast('Copiado para o Notion!');}).catch(()=>downloadTxt(text));
+  } else { downloadTxt(text); }
 }
 
 function exportAll(){
   loadAll();
   const ids=Object.keys(patients);
   if(!ids.length){alert('Nenhum paciente cadastrado.');return;}
-  const lines=['# CT-P44 3.1 — Relatório Geral','Data: '+new Date().toLocaleDateString('pt-BR'),'Total: '+ids.length+' pacientes',''];
-  ids.forEach(id=>{
+  const now=new Date();
+  const rows=[['Paciente','Data triagem','Centro','Elegivel','C1D1','Screening','Exclusoes','Ultima atualizacao']];
+  ids.sort((a,b)=>patients[b].updated-patients[a].updated).forEach(id=>{
     const p=patients[id];
-    lines.push('## '+p.name);
-    lines.push('- Triagem: '+(p.date_scr?new Date(p.date_scr).toLocaleDateString('pt-BR'):'—'));
-    lines.push('- Exclusões detectadas: '+(p.excFail||0));
-    lines.push('- Screening: '+(p.scrOk||0)+'/10');
-    lines.push('- C1D1: '+(p.c1Ok||0)+'/8');
-    lines.push('- Elegível: '+(p.final_eleg===true?'✅ SIM':p.final_eleg===false?'❌ NÃO':'pendente'));
-    lines.push('- C1D1: '+(p.final_c1d1===true?'🟢 GO':p.final_c1d1===false?'🔴 NO GO':'pendente'));
-    lines.push('');
+    rows.push([
+      p.name||'',
+      p.date_scr?new Date(p.date_scr+' ').toLocaleDateString('pt-BR'):'',
+      p.centro||'',
+      p.final_eleg===true?'SIM':p.final_eleg===false?'NAO':'pendente',
+      p.final_c1d1===true?'GO':p.final_c1d1===false?'NO GO':'pendente',
+      (p.scrOk||0)+'/10',
+      String(p.excFail||0),
+      new Date(p.updated).toLocaleDateString('pt-BR')
+    ]);
   });
-  navigator.clipboard.writeText(lines.join('\n')).then(()=>alert('Relatório geral copiado!'));
+  const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='CT-P44_'+now.toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
 }
 
+function downloadTxt(text){
+  const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='CT-P44_paciente.txt';
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+  showToast('Arquivo baixado!');
+}
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>{t.classList.remove('show');t.textContent='Salvo automaticamente';},2500);
+}
 // ── INIT ──
 loadAll();renderList();
 document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
