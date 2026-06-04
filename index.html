@@ -129,6 +129,42 @@ input[type=checkbox].neu{accent-color:var(--blue)}
   .gng-grid,.final-grid,.pt-grid{grid-template-columns:1fr}
   .lab-row .ref{min-width:70px}.lab-row input[type=text]{width:60px}
 }
+
+  /* ── LOGIN ── */
+  #login-overlay{
+    position:fixed;inset:0;background:var(--bg3);
+    display:flex;align-items:center;justify-content:center;
+    z-index:9999;
+  }
+  #login-overlay.hidden{display:none}
+  .login-box{
+    background:var(--bg);border:1px solid var(--border);
+    border-radius:var(--radius);padding:36px 40px;
+    width:100%;max-width:380px;text-align:center;
+  }
+  .login-box h2{font-size:17px;font-weight:600;margin-bottom:4px;color:var(--text)}
+  .login-box p{font-size:13px;color:var(--text3);margin-bottom:24px}
+  .login-box input{
+    width:100%;padding:10px 14px;font-size:14px;
+    border:1px solid var(--border);border-radius:var(--radius-sm);
+    background:var(--bg2);color:var(--text);
+    text-align:center;letter-spacing:3px;margin-bottom:12px;
+  }
+  .login-box input:focus{outline:none;border-color:var(--green)}
+  .login-box button{
+    width:100%;padding:10px;font-size:14px;font-weight:600;
+    background:var(--green);color:#fff;border:none;
+    border-radius:var(--radius-sm);cursor:pointer;
+  }
+  .login-box button:hover{background:#18876A}
+  .login-error{
+    font-size:12px;color:var(--red-txt);margin-top:8px;
+    min-height:16px;
+  }
+  .login-box .protocol-tag{
+    font-size:11px;color:var(--text3);margin-bottom:20px;
+    font-family:var(--font-mono,monospace);
+  }
 </style>
 
   <!-- Firebase SDK -->
@@ -136,6 +172,20 @@ input[type=checkbox].neu{accent-color:var(--blue)}
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
+
+
+<!-- LOGIN OVERLAY -->
+<div id="login-overlay">
+  <div class="login-box">
+    <h2>CT-P44 3.1</h2>
+    <p class="protocol-tag">Checklist de Elegibilidade · CELLTRION</p>
+    <p>Digite a senha para acessar</p>
+    <input type="password" id="senha-input" placeholder="••••••••"
+      onkeydown="if(event.key==='Enter')checkSenha()"/>
+    <button onclick="checkSenha()">Entrar</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
 
 <!-- HEADER -->
 <div class="app-header">
@@ -824,7 +874,39 @@ function migrateFromLocalStorage(){
   }
 }
 
+
+// ── SENHA ──
+// Para trocar a senha, altere o valor abaixo:
+const SENHA_HASH = 'd5c841a5cb510991f2dcd4a7612f6cb1d3e97900813f55da271011c83e90a5f3'; // senha: Americas@2026
+
+async function hashStr(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkSenha(){
+  const val = document.getElementById('senha-input').value;
+  const h = await hashStr(val);
+  if(h === SENHA_HASH){
+    sessionStorage.setItem('ctp44_auth','1');
+    document.getElementById('login-overlay').classList.add('hidden');
+    document.getElementById('senha-input').value='';
+    document.getElementById('login-error').textContent='';
+  } else {
+    document.getElementById('login-error').textContent='Senha incorreta. Tente novamente.';
+    document.getElementById('senha-input').value='';
+    document.getElementById('senha-input').focus();
+  }
+}
+
+function checkAuth(){
+  if(sessionStorage.getItem('ctp44_auth')==='1'){
+    document.getElementById('login-overlay').classList.add('hidden');
+  }
+}
+
 // ── INIT ──
+checkAuth();
 migrateFromLocalStorage();
 db.on('value', snapshot => {
   patients = snapshot.val() || {};
