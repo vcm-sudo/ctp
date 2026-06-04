@@ -130,6 +130,10 @@ input[type=checkbox].neu{accent-color:var(--blue)}
   .lab-row .ref{min-width:70px}.lab-row input[type=text]{width:60px}
 }
 </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -479,12 +483,30 @@ const lsnLabs=[
 ];
 
 // ── STORAGE ──
+// ══ FIREBASE CONFIG ══════════════════════════
+// Cole aqui o seu firebaseConfig (passo 3 das instruções)
+const firebaseConfig = {
+  apiKey: "AIzaSyAa-YK9x83opLUXnBekiXdLl7mK5BR9EJM",
+  authDomain: "ct-p44-checklist.firebaseapp.com",
+  databaseURL: "https://ct-p44-checklist-default-rtdb.firebaseio.com",
+  projectId: "ct-p44-checklist",
+  storageBucket: "ct-p44-checklist.firebasestorage.app",
+  messagingSenderId: "977389446900",
+  appId: "1:977389446900:web:24e8787213dffb45a860a1"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database().ref('patients');
+// ══════════════════════════════════════════
+
 let patients={};
 let currentId=null;
 let fd={eleg:null,c1d1:null};
 
-function loadAll(){patients=JSON.parse(localStorage.getItem('ctp44_patients')||'{}');}
-function saveAll(){localStorage.setItem('ctp44_patients',JSON.stringify(patients));}
+function loadAll(){/* dados carregados via Firebase em tempo real */}
+function saveAll(){
+  if(!patients||Object.keys(patients).length===0)return;
+  db.set(patients).catch(e=>console.error('Firebase save error:',e));
+}
 
 // ── LISTA ──
 function renderList(){
@@ -540,8 +562,9 @@ function createPatient(){
   const name=document.getElementById('new-name').value.trim();
   if(!name){alert('Informe o nome ou ID do paciente.');return;}
   const id='pt_'+Date.now();
-  patients[id]={id,name,date_scr:document.getElementById('new-date').value,centro:document.getElementById('new-centro').value,updated:Date.now(),checkboxes:{},texts:{},final_eleg:null,final_c1d1:null,excFail:0,scrOk:0,c1Ok:0};
-  saveAll();closeModal();openPatient(id);
+  const newPt={id,name,date_scr:document.getElementById('new-date').value,centro:document.getElementById('new-centro').value,updated:Date.now(),checkboxes:{},texts:{},final_eleg:null,final_c1d1:null,excFail:0,scrOk:0,c1Ok:0};
+  patients[id]=newPt;
+  db.child(id).set(newPt).then(()=>{closeModal();openPatient(id);});
 }
 
 // ── ABRIR PACIENTE ──
@@ -583,7 +606,7 @@ function backToList(){
 function deletePatient(){
   if(!currentId)return;
   if(!confirm('Excluir este paciente? Esta ação não pode ser desfeita.'))return;
-  delete patients[currentId];saveAll();backToList();
+  db.child(currentId).remove().then(()=>{delete patients[currentId];backToList();});
 }
 
 // ── SAVE ──
@@ -759,8 +782,56 @@ function showToast(msg){
   const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
   setTimeout(()=>{t.classList.remove('show');t.textContent='Salvo automaticamente';},2500);
 }
+
+// ── MIGRAÇÃO localStorage → Firebase ──
+function migrateFromLocalStorage(){
+  const old = localStorage.getItem('ctp44_patients');
+  if(!old) return;
+  try {
+    const data = JSON.parse(old);
+    const ids = Object.keys(data);
+    if(!ids.length) return;
+    // Verifica se Firebase já tem dados antes de migrar
+    db.once('value', snap => {
+      const existing = snap.val() || {};
+      const existingCount = Object.keys(existing).length;
+      if(existingCount > 0) {
+        // Já tem dados no Firebase — pergunta se quer mesclar
+        const merge = confirm(
+          'Encontrei ' + ids.length + ' paciente(s) salvos localmente neste computador.\n' +
+          'O Firebase já tem ' + existingCount + ' paciente(s).\n\n' +
+          'Deseja importar os pacientes locais para o Firebase?\n' +
+          '(Pacientes com o mesmo ID serão ignorados)'
+        );
+        if(!merge) { localStorage.removeItem('ctp44_patients'); return; }
+      }
+      // Faz a migração
+      let count = 0;
+      ids.forEach(id => {
+        if(!existing[id]) {
+          db.child(id).set(data[id]);
+          count++;
+        }
+      });
+      localStorage.removeItem('ctp44_patients');
+      const msg = count > 0
+        ? count + ' paciente(s) importado(s) com sucesso para o Firebase!'
+        : 'Pacientes já existiam no Firebase — nenhuma alteração feita.';
+      alert('✅ Migração concluída!\n' + msg);
+    });
+  } catch(e) {
+    console.error('Erro na migração:', e);
+  }
+}
+
 // ── INIT ──
-loadAll();renderList();
+migrateFromLocalStorage();
+db.on('value', snapshot => {
+  patients = snapshot.val() || {};
+  if(document.getElementById('view-list').style.display !== 'none'){
+    renderList();
+  }
+});
 document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 </script>
