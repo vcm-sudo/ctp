@@ -180,19 +180,6 @@ input[type=checkbox].neu{accent-color:var(--blue)}
 <body>
 
 
-<!-- LOGIN OVERLAY -->
-<div id="login-overlay">
-  <div class="login-box">
-    <h2>CT-P44 3.1</h2>
-    <p class="protocol-tag">Checklist de Elegibilidade · CELLTRION</p>
-    <p>Digite a senha para acessar</p>
-    <input type="password" id="senha-input" placeholder="••••••••"
-      onkeydown="if(event.key==='Enter')checkSenha()"/>
-    <button onclick="checkSenha()">Entrar</button>
-    <div class="login-error" id="login-error"></div>
-  </div>
-</div>
-
 <!-- HEADER -->
 <div class="app-header">
   <div style="flex:1">
@@ -261,10 +248,10 @@ input[type=checkbox].neu{accent-color:var(--blue)}
     <div class="sec-hd" onclick="tog('hem')"><h3>🩸 Hematologia</h3><span class="badge b-green">Inclusão nº 8</span><span class="tog" id="tog-hem">▼</span></div>
     <div class="sec-body" id="body-hem">
       <div class="lab-row"><label>Hb</label><span class="ref">≥ 7,5 g/dl</span><input type="text" id="lhb" placeholder="valor" oninput="upd()"><span class="lab-st st-empty" id="shb">—</span></div>
-      <div class="lab-row"><label>Plaquetas (MO ≤50% plasmócitos)</label><span class="ref">≥ 75 × 10⁹/l</span><input type="text" id="lplt" placeholder="valor" oninput="upd()"><span class="lab-st st-empty" id="splt">—</span></div>
-      <div class="lab-row"><label>Plaquetas (MO &gt;50% plasmócitos)</label><span class="ref">≥ 50 × 10⁹/l</span><input type="text" id="lplt2" placeholder="valor" oninput="upd()"><span class="lab-st st-empty" id="splt2">—</span></div>
+      <div class="lab-row"><label>Plaquetas (MO &lt;50% plasmócitos)</label><span class="ref">≥ 75 × 10⁹/l</span><input type="text" id="lplt" placeholder="valor" oninput="upd()"><span class="lab-st st-empty" id="splt">—</span></div>
+      <div class="lab-row"><label>Plaquetas (MO ≥50% plasmócitos)</label><span class="ref">≥ 50 × 10⁹/l</span><input type="text" id="lplt2" placeholder="valor" oninput="upd()"><span class="lab-st st-empty" id="splt2">—</span></div>
       <div class="lab-row"><label>ANC</label><span class="ref">≥ 1,0 × 10⁹/l</span><input type="text" id="lanc" placeholder="valor" oninput="upd()"><span class="lab-st st-empty" id="sanc">—</span></div>
-      <div class="hint">⚠️ Sem G-CSF/GM-CSF, transfusão ou EPO nos 14 dias anteriores</div>
+      <div class="hint">⚠️ Sem G-CSF/GM-CSF 14d · Hb sem transfusão/EPO 14d · Plaquetas sem transfusão 7d e sem trombopoetina 14d</div>
     </div>
   </div>
 
@@ -303,6 +290,11 @@ input[type=checkbox].neu{accent-color:var(--blue)}
       <div class="lab-row"><label>Glicose</label><span class="ref">ref. local</span><input type="text" id="lglic" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
       <div class="lab-row"><label>CK / CPK</label><span class="ref">ref. local</span><input type="text" id="lck" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
       <div class="lab-row"><label>CK-MB</label><span class="ref">ref. local</span><input type="text" id="lckmb" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="lab-row"><label>Cálcio ionizado</label><span class="ref">ref. local</span><input type="text" id="lcai" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="lab-row"><label>Colesterol total</label><span class="ref">ref. local</span><input type="text" id="lcol" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="lab-row"><label>HDL</label><span class="ref">ref. local</span><input type="text" id="lhdl" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="lab-row"><label>Triglicerídeos</label><span class="ref">ref. local</span><input type="text" id="ltrig" placeholder="valor" oninput="save()"><span class="lab-st">—</span></div>
+      <div class="hint">📋 Painel do protocolo (nota 16): ALT, FA, AST, bilirrubina total e direta, GGT, LDH, albumina, proteína total, ureia, creatinina, CrCl, ácido úrico, Na, K, Cl, fosfato, glicose, colesterol total, triglicerídeos, HDL, CK, CK-MB, PCR, cálcio total, ionizado e corrigido</div>
     </div>
   </div>
 
@@ -319,6 +311,18 @@ input[type=checkbox].neu{accent-color:var(--blue)}
       <div class="row"><input type="checkbox" id="resp-anterior" onchange="upd()"><label for="resp-anterior">Resposta ≥ RP com pelo menos 1 esquema anterior</label></div>
       <div class="row"><input type="checkbox" id="pd-ultima" onchange="upd()"><label for="pd-ultima">PD confirmada durante ou após a última linha de terapia</label></div>
       <div class="lab-row"><label>Número de linhas anteriores</label><span class="ref">1 a 3</span><input type="text" id="llinhas" placeholder="nº" oninput="upd()"><span class="lab-st st-empty" id="slinhas">—</span></div>
+      <div class="hint">⚠️ Nota 26: elegibilidade/doença mensurável deve ser confirmada pelo laboratório CENTRAL (SPEP/UPEP; FLC p/ cadeia leve) antes da randomização</div>
+    </div>
+  </div>
+
+  <!-- OUTROS CRITÉRIOS DE INCLUSÃO -->
+  <div class="sec">
+    <div class="sec-hd" onclick="tog('incx')"><h3>🧾 Outros Critérios de Inclusão</h3><span class="badge b-green">Inclusão nº 9, 10, 12</span><span class="tog" id="tog-incx">▼</span></div>
+    <div class="sec-body" id="body-incx">
+      <div class="row"><input type="checkbox" id="inc-tox" onchange="upd()"><label for="inc-tox">Toxicidades da terapia anterior resolvidas/estabilizadas a grau ≤ 1 (CTCAE v5.0)</label></div>
+      <div class="row"><input type="checkbox" id="inc-expec" onchange="upd()"><label for="inc-expec">Expectativa de vida &gt; 6 meses (critério clínico do investigador)</label></div>
+      <div class="row"><input type="checkbox" id="inc-contra" onchange="upd()"><label for="inc-contra">Contracepção eficaz iniciada 4 semanas antes do C1D1<span class="sub">Manter durante todo o estudo e por 5 meses após a última dose de daratumumabe; homens: preservativo em todo contato sexual</span></label></div>
+      <div class="row"><input type="checkbox" id="inc-capaz" onchange="upd()"><label for="inc-capaz">Capaz de entender e cumprir as exigências do estudo</label></div>
     </div>
   </div>
 
@@ -333,7 +337,7 @@ input[type=checkbox].neu{accent-color:var(--blue)}
       <div class="row"><input type="checkbox" class="neu" id="fish-1416" onchange="upd()"><label for="fish-1416">FISH: t(14;16)</label></div>
       <div class="row"><input type="checkbox" class="neu" id="fish-1q" onchange="upd()"><label for="fish-1q">FISH: ganho / amplificação 1q</label></div>
       <div class="lab-row"><label>Outro achado FISH</label><span class="ref">—</span><input type="text" id="lfish-outro" placeholder="descrever" oninput="save()"><span class="lab-st">—</span></div>
-      <div class="hint">💡 Estratificação de risco e baseline</div>
+      <div class="hint">💡 Estratificação: del(17p), t(4;14), t(14;16) por FISH central. Nota 28: FISH LOCAL pode ser usado para randomizar se o central for inviável na triagem, após consulta ao lab central e ao patrocinador. Coleta + resultado ≤ 42 dias antes da randomização dispensam repetição.</div>
     </div>
   </div>
 
@@ -390,6 +394,13 @@ input[type=checkbox].neu{accent-color:var(--blue)}
       <div class="row"><input type="checkbox" class="exc" id="ex-aler" onchange="upd()"><label for="ex-aler">Alergia a mAbs, hialuronidase, dexametasona ou lenalidomida</label></div>
       <div class="row"><input type="checkbox" class="exc" id="ex-cirur" onchange="upd()"><label for="ex-cirur">Cirurgia de grande porte ≤ 4 semanas<span class="sub">Exceto anestesia local, cifoplastia ou vertebroplastia</span></label></div>
       <div class="row"><input type="checkbox" class="exc" id="ex-men" onchange="upd()"><label for="ex-men">Envolvimento meníngeo conhecido do MM</label></div>
+      <div class="row"><input type="checkbox" class="exc" id="ex-neo" onchange="upd()"><label for="ex-neo">Outra neoplasia maligna ≤ 5 anos<span class="sub">Exceto CEC/CBC de pele, carcinoma in situ (colo, mama e outros in situ)</span></label></div>
+      <div class="row"><input type="checkbox" class="exc" id="ex-gi" onchange="upd()"><label for="ex-gi">Disfunção GI ativa que impeça engolir/absorver comprimidos<span class="sub">Inclui bypass gástrico ou ressecção intestinal prévios</span></label></div>
+      <div class="row"><input type="checkbox" class="exc" id="ex-ihf" onchange="upd()"><label for="ex-ihf">Intolerância hereditária à frutose (IHF)</label></div>
+      <div class="row"><input type="checkbox" class="exc" id="ex-tmoplan" onchange="upd()"><label for="ex-tmoplan">Transplante de células-tronco planejado durante o período de tratamento</label></div>
+      <div class="row"><input type="checkbox" class="exc" id="ex-amament" onchange="upd()"><label for="ex-amament">Amamentando ou planejando amamentar<span class="sub">Durante o estudo ou até 5 meses após a última dose de daratumumabe</span></label></div>
+      <div class="row"><input type="checkbox" class="exc" id="ex-semen" onchange="upd()"><label for="ex-semen">Homem planejando ter filhos ou doar sêmen<span class="sub">De 4 semanas antes do C1D1 até 5 meses após a última dose</span></label></div>
+      <div class="row"><input type="checkbox" class="exc" id="ex-psiq" onchange="upd()"><label for="ex-psiq">Quadro clínico/psiquiátrico grave ou não controlado, ou incapacidade de cumprir o protocolo<span class="sub">A critério do investigador (exclusões nº 10k e 14)</span></label></div>
     </div>
   </div>
 
@@ -402,6 +413,7 @@ input[type=checkbox].neu{accent-color:var(--blue)}
       <div class="row"><input type="checkbox" id="w-tact" onchange="upd()"><label for="w-tact">TACT &gt; 12 semanas</label></div>
       <div class="row"><input type="checkbox" id="w-vac" onchange="upd()"><label for="w-vac">Vacina viva / anti-COVID-19 &gt; 14 dias</label></div>
       <div class="row"><input type="checkbox" id="w-plas" onchange="upd()"><label for="w-plas">Plasmaférese &gt; 28 dias</label></div>
+      <div class="row"><input type="checkbox" id="w-exp" onchange="upd()"><label for="w-exp">Medicamento/dispositivo experimental &gt; 28 dias (ou 5 meias-vidas)</label></div>
     </div>
   </div>
 
@@ -413,7 +425,7 @@ input[type=checkbox].neu{accent-color:var(--blue)}
       <div class="row"><input type="checkbox" class="neu" id="grav1" onchange="upd()"><label for="grav1">Teste de gravidez — soro (10–14 dias antes do C1D1)</label></div>
       <div class="row"><input type="checkbox" class="neu" id="grav2" onchange="upd()"><label for="grav2">Teste de gravidez — urina (Dia 1 Ciclo 1)</label></div>
       <div class="row"><input type="checkbox" class="neu" id="espiro" onchange="upd()"><label for="espiro">Espirometria / VEF1 (se DPOC ou asma suspeita)</label></div>
-      <div class="row"><input type="checkbox" class="neu" id="urina1" onchange="upd()"><label for="urina1">Urina tipo 1</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="urina1" onchange="upd()"><label for="urina1">Urina tipo 1<span class="sub">Bilirrubina, sangue, glicose, cetonas, leucócitos, nitritos, pH, proteína, densidade, urobilinogênio</span></label></div>
       <div class="row"><input type="checkbox" class="neu" id="upep" onchange="upd()"><label for="upep">UPEP / Coleta de urina 24h (antes da dose)</label></div>
       <div class="row"><input type="checkbox" class="neu" id="eortc" onchange="upd()"><label for="eortc">Questionário EORTC QLQ-C30 (qualidade de vida — baseline)</label></div>
     </div>
@@ -424,8 +436,8 @@ input[type=checkbox].neu{accent-color:var(--blue)}
     <div class="sec-hd" onclick="tog('scr')"><h3>✅ Checklist Screening</h3><span class="badge b-blue">Pré-randomização</span><span class="tog" id="tog-scr">▼</span></div>
     <div class="sec-body" id="body-scr">
       <div class="row"><input type="checkbox" class="neu" id="s-tcle" onchange="upd()"><label for="s-tcle">TCLE assinado</label></div>
-      <div class="row"><input type="checkbox" class="neu" id="s-hemo" onchange="upd()"><label for="s-hemo">Hemograma completo</label></div>
-      <div class="row"><input type="checkbox" class="neu" id="s-bio" onchange="upd()"><label for="s-bio">Bioquímica completa</label></div>
+      <div class="row"><input type="checkbox" class="neu" id="s-hemo" onchange="upd()"><label for="s-hemo">Hemograma completo<span class="sub">Hb, Ht, VCM, HCM, CHCM, eritrócitos, leucócitos totais e diferencial, ANC, ALC, plaquetas</span></label></div>
+      <div class="row"><input type="checkbox" class="neu" id="s-bio" onchange="upd()"><label for="s-bio">Bioquímica completa<span class="sub">ALT, AST, FA, GGT, bilirrubinas, LDH, albumina, proteína total, ureia, creatinina + CrCl, ácido úrico, Na, K, Cl, fosfato, glicose, lipídios (CT/TG/HDL), CK, CK-MB, PCR, cálcio total/ionizado/corrigido</span></label></div>
       <div class="row"><input type="checkbox" class="neu" id="s-doenca" onchange="upd()"><label for="s-doenca">Doença mensurável documentada</label></div>
       <div class="row"><input type="checkbox" class="neu" id="s-soro" onchange="upd()"><label for="s-soro">Sorologias completas</label></div>
       <div class="row"><input type="checkbox" class="neu" id="s-ecg" onchange="upd()"><label for="s-ecg">ECG</label></div>
@@ -519,8 +531,9 @@ input[type=checkbox].neu{accent-color:var(--blue)}
 
 <script>
 // ── CAMPOS ──
-const CHECKBOX_IDS=['flc-ratio','mensuravel','recid-refrat','resp-anterior','pd-ultima','mo-asp','fish-17p','fish-414','fish-1416','fish-1q','petct','ext-med','hiper-pet','tc-rm','tipo-abo','fenotipagem','coombs','hiv','hbsag','antihbc','antihcv','hbvdna','ex-cd38','ex-len','ex-infec','ex-amil','ex-asma','ex-dpoc','ex-cardio','ex-tac','ex-alotx','ex-aler','ex-cirur','ex-men','w-ter','w-rt','w-tact','w-vac','w-plas','ecg','grav1','grav2','espiro','urina1','upep','eortc','s-tcle','s-hemo','s-bio','s-doenca','s-soro','s-ecg','s-fish','s-img','s-tipo','s-mo','c-reconf','c-hemo','c-bio','c-tipo','c-grav','c-upep','c-premed','c-lib','g1','g2','g3','g4','g5','g6','g7','g8','g9','g10'];
-const TEXT_IDS=['pt-idade','pt-sexo','pt-peso','pt-ecog','pt-date-scr','pt-date-c1','lhb','lplt','lplt2','lanc','lcrea','lcrcl','lsn-ast','last','lsn-alt','lalt','lsn-fa','lfa','lggt','lsn-bil','lbil','lbild','lcalciot','lalb','lcalcio','lpot','lsodio','lcloro','lfosforo','lureia','lldh','lpcr','lpt','lau','lglic','lck','lckmb','lpm','lpmu','lflc','llinhas','lplasm','lfish-outro','lpetdt','lsuv','obs-texto','obs-pendencias'];
+const CHECKBOX_IDS=['flc-ratio','mensuravel','recid-refrat','resp-anterior','pd-ultima','inc-tox','inc-expec','inc-contra','inc-capaz','mo-asp','fish-17p','fish-414','fish-1416','fish-1q','petct','ext-med','hiper-pet','tc-rm','tipo-abo','fenotipagem','coombs','hiv','hbsag','antihbc','antihcv','hbvdna','ex-cd38','ex-len','ex-infec','ex-amil','ex-asma','ex-dpoc','ex-cardio','ex-tac','ex-alotx','ex-aler','ex-cirur','ex-men','ex-neo','ex-gi','ex-ihf','ex-tmoplan','ex-amament','ex-semen','ex-psiq','w-ter','w-rt','w-tact','w-vac','w-plas','w-exp','ecg','grav1','grav2','espiro','urina1','upep','eortc','s-tcle','s-hemo','s-bio','s-doenca','s-soro','s-ecg','s-fish','s-img','s-tipo','s-mo','c-reconf','c-hemo','c-bio','c-tipo','c-grav','c-upep','c-premed','c-lib','g1','g2','g3','g4','g5','g6','g7','g8','g9','g10'];
+const EXC_IDS=['ex-cd38','ex-len','ex-infec','ex-amil','ex-asma','ex-dpoc','ex-cardio','ex-tac','ex-alotx','ex-aler','ex-cirur','ex-men','ex-neo','ex-gi','ex-ihf','ex-tmoplan','ex-amament','ex-semen','ex-psiq'];
+const TEXT_IDS=['pt-idade','pt-sexo','pt-peso','pt-ecog','pt-date-scr','pt-date-c1','lhb','lplt','lplt2','lanc','lcrea','lcrcl','lsn-ast','last','lsn-alt','lalt','lsn-fa','lfa','lggt','lsn-bil','lbil','lbild','lcalciot','lalb','lcalcio','lpot','lsodio','lcloro','lfosforo','lureia','lldh','lpcr','lpt','lau','lglic','lck','lckmb','lcai','lcol','lhdl','ltrig','lpm','lpmu','lflc','llinhas','lplasm','lfish-outro','lpetdt','lsuv','obs-texto','obs-pendencias'];
 
 const labs=[
   {i:'lhb',s:'shb',min:7.5,max:null},{i:'lplt',s:'splt',min:75,max:null},
@@ -680,8 +693,7 @@ function save(){
     p.final_eleg=fd.eleg;p.final_c1d1=fd.c1d1;
     p.updated=Date.now();
     // compute summary stats for list view
-    const excIds=['ex-cd38','ex-len','ex-infec','ex-amil','ex-asma','ex-dpoc','ex-cardio','ex-tac','ex-alotx','ex-aler','ex-cirur','ex-men'];
-    p.excFail=excIds.filter(id=>p.checkboxes[id]).length;
+    p.excFail=EXC_IDS.filter(id=>p.checkboxes[id]).length;
     const scrIds=['s-tcle','s-hemo','s-bio','s-doenca','s-soro','s-ecg','s-fish','s-img','s-tipo','s-mo'];
     p.scrOk=scrIds.filter(id=>p.checkboxes[id]).length;
     const c1Ids=['c-reconf','c-hemo','c-bio','c-tipo','c-grav','c-upep','c-premed','c-lib'];
@@ -726,8 +738,7 @@ function upd(){
     se.textContent=ok?'OK':'FORA';se.className=ok?'lab-st st-ok':'lab-st st-fail';
     if(se.title!==undefined)se.title='Limite: '+limit.toFixed(1);
   });
-  const excIds=['ex-cd38','ex-len','ex-infec','ex-amil','ex-asma','ex-dpoc','ex-cardio','ex-tac','ex-alotx','ex-aler','ex-cirur','ex-men'];
-  const excFail=excIds.filter(id=>document.getElementById(id)?.checked).length;
+  const excFail=EXC_IDS.filter(id=>document.getElementById(id)?.checked).length;
   const pesoBad=document.getElementById('peso-st').textContent==='EXCLUI';
   const ecogBad=document.getElementById('ecog-st').textContent==='FALHA';
   const vd=document.getElementById('verdict');
@@ -777,10 +788,10 @@ function copyNotion(){
   L.push('## 🔬 Bioquímica');
   [['last','sast','AST'],['lalt','salt','ALT'],['lfa','sfa','FA'],['lbil','sbil','Bil total'],['lcalcio','scalcio','Cálcio corrigido'],['lpot','spot','Potássio']].forEach(r=>L.push(labLine(r[0],r[1],r[2])));
   L.push('## 📊 Doença');L.push(labLine('lpm','spm','Prot M sérica'));L.push(labLine('llinhas','slinhas','Linhas anteriores'));
-  [['mensuravel','Doença mensurável'],['recid-refrat','Recidivante/refratária'],['resp-anterior','Resposta ≥ RP anterior'],['pd-ultima','PD após última linha']].forEach(r=>L.push(box(r[0])+r[1]));
+  [['mensuravel','Doença mensurável'],['recid-refrat','Recidivante/refratária'],['resp-anterior','Resposta ≥ RP anterior'],['pd-ultima','PD após última linha'],['inc-tox','Toxicidades prévias ≤ G1'],['inc-expec','Expectativa > 6 meses'],['inc-contra','Contracepção 4 sem antes C1D1'],['inc-capaz','Capaz de cumprir o estudo']].forEach(r=>L.push(box(r[0])+r[1]));
   L.push('## 🧫 Imuno-hematologia');[['tipo-abo','Tipagem ABO/Rh'],['fenotipagem','Fenotipagem'],['coombs','Coombs indireto']].forEach(r=>L.push(box(r[0])+r[1]));
   L.push('## 🦠 Sorologias');[['hiv','HIV Neg'],['hbsag','HBsAg Neg'],['antihbc','Anti-HBc coletado'],['antihcv','Anti-HCV Neg']].forEach(r=>L.push(box(r[0])+r[1]));
-  L.push('## 🚫 Exclusões');['ex-cd38','ex-len','ex-infec','ex-amil','ex-asma','ex-dpoc','ex-cardio','ex-tac','ex-alotx','ex-aler','ex-cirur','ex-men'].forEach(id=>L.push(box(id)+(gc2(id)?'**PRESENTE**':'ausente')+' — '+id.replace('ex-','')));
+  L.push('## 🚫 Exclusões');EXC_IDS.forEach(id=>L.push(box(id)+(gc2(id)?'**PRESENTE**':'ausente')+' — '+id.replace('ex-','')));
   L.push('## ✅ Screening');['s-tcle','s-hemo','s-bio','s-doenca','s-soro','s-ecg','s-fish','s-img','s-tipo','s-mo'].forEach(id=>L.push(box(id)+id));
   L.push('## 🟢 C1D1');['c-reconf','c-hemo','c-bio','c-tipo','c-grav','c-upep','c-premed','c-lib'].forEach(id=>L.push(box(id)+id));
   L.push('## 🎯 Decisão');L.push('- **Elegível:** '+(fd.eleg===true?'✅ SIM':fd.eleg===false?'❌ NÃO':'pendente'));L.push('- **C1D1:** '+(fd.c1d1===true?'🟢 GO':fd.c1d1===false?'🔴 NO GO':'pendente'));
@@ -881,38 +892,7 @@ function migrateFromLocalStorage(){
 }
 
 
-// ── SENHA ──
-// Para trocar a senha, altere o valor abaixo:
-const SENHA_HASH = 'd5c841a5cb510991f2dcd4a7612f6cb1d3e97900813f55da271011c83e90a5f3'; // senha: Americas@2026
-
-async function hashStr(str){
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
-async function checkSenha(){
-  const val = document.getElementById('senha-input').value;
-  const h = await hashStr(val);
-  if(h === SENHA_HASH){
-    sessionStorage.setItem('ctp44_auth','1');
-    document.getElementById('login-overlay').classList.add('hidden');
-    document.getElementById('senha-input').value='';
-    document.getElementById('login-error').textContent='';
-  } else {
-    document.getElementById('login-error').textContent='Senha incorreta. Tente novamente.';
-    document.getElementById('senha-input').value='';
-    document.getElementById('senha-input').focus();
-  }
-}
-
-function checkAuth(){
-  if(sessionStorage.getItem('ctp44_auth')==='1'){
-    document.getElementById('login-overlay').classList.add('hidden');
-  }
-}
-
 // ── INIT ──
-checkAuth();
 migrateFromLocalStorage();
 db.on('value', snapshot => {
   patients = snapshot.val() || {};
